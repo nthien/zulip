@@ -1,0 +1,45 @@
+#!/usr/bin/env python
+import os
+import sys
+import pwd
+import subprocess
+import logging
+import time
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from zulip_tools import ENDC, OKGREEN, DEPLOYMENTS_DIR
+
+logging.basicConfig(format="%(asctime)s restart-server: %(message)s",
+                    level=logging.INFO)
+
+deploy_path = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
+os.chdir(deploy_path)
+
+if pwd.getpwuid(os.getuid())[0] != "zulip":
+    logging.error("Must be run as user 'zulip'.")
+    sys.exit(1)
+
+# Send a statsd event on restarting the server
+subprocess.check_call(["python", "./manage.py", "send_stats", "incr", "events.server_restart", str(int(time.time()))])
+
+logging.info("Filling memcached caches")
+subprocess.check_call(["python", "./manage.py", "fill_memcached_caches"])
+
+# Restart the FastCGI and related processes via supervisorctl.
+logging.info("Stopping workers")
+subprocess.check_call(["supervisorctl", "stop", "zulip-workers:*"])
+logging.info("Stopping server core")
+subprocess.check_call(["supervisorctl", "stop", "zulip-senders:* zulip-django zulip-tornado"])
+subprocess.check_call(["ln", '-nsf', deploy_path, os.path.join(DEPLOYMENTS_DIR, "current")])
+logging.info("Starting server core")
+subprocess.check_call(["supervisorctl", "start", "zulip-tornado zulip-django zulip-senders:*"])
+logging.info("Starting workers")
+subprocess.check_call(["supervisorctl", "start", "zulip-workers:*"])
+
+using_sso = subprocess.check_output(['./bin/get-django-setting', 'USING_APACHE_SSO'])
+if using_sso.strip() == 'True':
+    logging.info("Restarting Apache WSGI process...")
+    subprocess.check_call(["pkill", "-f", "apache2", "-u", "zulip"])
+
+logging.info("Done!")
+print OKGREEN + "Application restarted successfully!" + ENDC

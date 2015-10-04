@@ -1,0 +1,137 @@
+{% extends "zerver/portico.html" %}
+
+{# API information page #}
+
+{% block portico_content %}
+    <div class="apps-page-header">Do&nbsp;we&nbsp;have&nbsp;apps? App&#8209;solutely.</div>
+    <div class="apps-muted">Ok, I take it back, I'm sorry, please don't go.</div>
+
+    <h3 class="apps-instructions-header">Installation instructions</h3>
+    <ul class="nav nav-tabs" id="apps-tabs">
+    {% if not_voyager %}
+      <li class="active"><a href="#android" data-toggle="tab">Android</a></li>
+      <li><a href="#iphone" data-toggle="tab">iPhone</a></li>
+    {% endif %}
+      <li><a href="#mac" data-toggle="tab">Mac</a></li>
+      <li><a href="#linux" data-toggle="tab">Linux</a></li>
+      <li><a href="#windows" data-toggle="tab">Windows</a></li>
+      <li><a href="#plan9" data-toggle="tab">Plan 9</a></li>
+    </ul>
+
+    <div class="tab-content">
+    {% if not_voyager %}
+      <div class="tab-pane active" id="android">
+        <img class="screenshot android-screenshot pull-left" src="/static/images/app-screenshots/zulip-android.png" alt="screenshot of the Zulip app on Android" />
+
+        <p>Zulip has a free, <strong>100% native app</strong> for Android,
+          and you can easily grab it from
+          the <a href="https://play.google.com/store/apps/details?id=com.zulip.android">Google
+          Play Store</a>.</p>
+
+        <a href="https://play.google.com/store/apps/details?id=com.zulip.android">
+          <img alt="Get it on Google Play"
+               src="https://developer.android.com/images/brand/en_generic_rgb_wo_60.png" />
+        </a>
+      </div>
+
+      <div class="tab-pane" id="iphone">
+        <img class="screenshot iphone-screenshot pull-left" src="/static/images/app-screenshots/zulip-iphone.png" alt="screenshot of the Zulip app on iOS" />
+
+        <p>Zulip has a free, <strong>100% native app</strong> for iPhone and
+        iPad. Please grab it from
+        the <a href="http://itunes.com/apps/zulip">App Store</a>!</p>
+
+        <a href="http://itunes.com/apps/zulip">
+          <img alt="Get it in the App Store" src="/static/images/app-screenshots/ios_badge.png" alt="Apple App Store icon for Zulip" />
+        </a>
+
+      </div>
+      {% endif %}
+      <div class="tab-pane" id="mac">
+        <p>You love your Mac. And you love Zulip. So what could be
+        better than a Zulip app for Mac? Enjoy notifications for
+        messages and PMs in your dock whether you're in Sublime,
+        emacs, or Photoshop.</p>
+
+        <p style="text-align: center">
+        {% if not_voyager %}
+          <a href="https://zulip.com/dist/apps/mac/Zulip-latest.dmg" class="btn btn-large btn-primary btn-app-download"><i class="icon-vector-download"></i> Download Zulip for Mac</a>
+        {% else %}
+          <a href="https://zulip.com/dist/apps/sso/mac/Zulip-latest.dmg" class="btn btn-large btn-primary btn-app-download"><i class="icon-vector-download"></i> Download Zulip for Mac</a>
+        {% endif %}
+        </p>
+
+        <img class="full-width-screenshot" src="/static/images/app-screenshots/zulip-desktop-mac.png" alt="screenshot of the Zulip app on OS X" />
+      </div>
+
+      <div class="tab-pane" id="linux">
+        <p>Zulip provides a native Linux app that runs standalone
+        outside of your browser. How you install it depends on what
+        you're running:</p>
+
+        <h3>Debian and Ubuntu</h3>
+        We have an APT repository for Zulip, so adding and installing the app is easy:
+        <div class="codehilite"><pre>wget https://zulip.com/dist/keys/user-apt.asc
+cat user-apt.asc | sudo apt-key add -
+sudo apt-add-repository http://apt.zulip.com/user/
+sudo apt-get update
+{% if not_voyager %}
+sudo apt-get install zulip-desktop
+{% else %}
+sudo apt-get install zulip-desktop-sso
+{% endif %}</pre></div>
+
+
+
+        <h3>Other</h3>
+        {% if not_voyager %}
+          <p>We provide a <a href="https://zulip.com/dist/apps/linux/zulip-desktop_latest.bin.tar.gz">binary tarball</a> of the Zulip application, built for 64-bit systems.
+          </p>
+        {% else %}
+          <p>We provide a <a href="https://zulip.com/dist/apps/sso/linux/zulip-desktop_latest.bin.tar.gz">binary tarball</a> of the Zulip application, built for 64-bit systems.
+          </p>
+        {% endif %}
+      </div>
+
+      <div class="tab-pane" id="windows">
+        <p>Windows. It's the best OS for your needs: gaming,
+        coding, expense reports. But you always felt that something
+        was missing... until now.</p>
+
+        <p>We proudly present <b>Zulip for Windows</b>: the second-best app for Windows on the market today (after
+        Solitaire, obviously.)</p>
+
+        <p style="text-align: center">
+          {% if not_voyager %}
+            <a href="https://zulip.com/dist/apps/win/zulip-latest.exe" class="btn btn-large btn-primary btn-app-download"><i class="icon-vector-download"></i> Download Zulip for Windows</a>
+          {% else %}
+            <a href="https://zulip.com/dist/apps/sso/win/zulip-latest.exe" class="btn btn-large btn-primary btn-app-download"><i class="icon-vector-download"></i> Download Zulip for Windows</a>
+          {% endif %}
+        </p>
+
+        <img class="full-width-screenshot" src="/static/images/app-screenshots/zulip-desktop-windows.png" alt="screenshot of the Zulip app on Windows" />
+      </div>
+
+      <div class="tab-pane" id="plan9">
+        <p>First, connect to our hosted 9P filesystem
+        at <code>plan9.zulip.com</code> and then... no, we're
+        totally kidding. There definitely isn't a version of Zulip
+        for Plan 9.</p>
+      </div>
+
+
+    </div>
+<script>
+$(function () {
+    if (navigator.appVersion.indexOf("Win") !== -1) {
+        $('#apps-tabs [href=#windows]').tab('show');
+    }
+    if (navigator.appVersion.indexOf("Mac") !== -1) {
+        $('#apps-tabs [href=#mac]').tab('show');
+    }
+    if (navigator.appVersion.indexOf("Linux") !== -1) {
+        $('#apps-tabs [href=#linux]').tab('show');
+    }
+});
+</script>
+{% endblock %}

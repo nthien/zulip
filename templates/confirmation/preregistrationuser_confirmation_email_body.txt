@@ -1,0 +1,16 @@
+Hello there.
+
+You recently signed up for Zulip. Awesome!
+
+To complete signup, visit this link below:
+    <{{ activate_url }}>
+
+{% if voyager %}
+If you are having issues, please contact your Zulip administrator at <{{ support_email }}>.
+{% else %}
+Feel free to give us a shout at <{{ support_email }}> if you have any questions.
+{% endif %}
+
+Cheers,
+
+The Zulip Team

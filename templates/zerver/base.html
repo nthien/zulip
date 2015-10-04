@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+
+{# Base template for the whole site. #}
+{% load compressed %}
+{% load minified_js %}
+
+<head>
+    <meta charset="UTF-8">
+    {% block title %}
+        {% if user_profile.realm.name %}
+        <title>{{user_profile.realm.name}} - {{product_name}}</title>
+        {% else %}
+        <title>Zulip</title>
+        {% endif %}
+    {% endblock %}
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="https://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link href="/static/favicon.ico?v=2" rel="shortcut icon">
+
+    {% if not_voyager %}
+    <script type="text/javascript">var dropboxAppKey = "{{ dropboxAppKey }}";</script>
+    {% endif %}
+
+    {# We need to import jQuery before Bootstrap #}
+    {% compressed_css 'common' %}
+    {% block page_params %}
+    {# blueslip needs page_params.debug_mode.  Set it to false by default. #}
+    <script type="text/javascript">
+    var page_params = {debug_mode: false};
+    </script>
+    {% endblock %}
+    {% minified_js 'common' %}
+    {% block customhead %}
+    {% endblock %}
+</head>
+
+<body>
+{% block content %}
+{% endblock %}
+</body>
+
+</html>

@@ -1,0 +1,77 @@
+{% extends "zerver/base.html" %}
+
+{% load compressed %}
+
+{% comment %}
+A base template for stuff like login, register, etc.
+
+Not inside the app itself, but covered by the same structure,
+hence the name.
+{% endcomment %}
+
+    {% block customhead %}
+    {% compressed_css 'portico' %}
+    {% endblock %}
+
+{% block content %}
+<div class="header">
+<div class="header-main" id="top_navbar">
+  <div class="column-left">
+        <div>
+          {% if zulip_com %}
+          <a class="brand logo" href="/"><img src="/static/images/logo/zulip-dropbox.png" class="portico-logo" alt="Zulip" content="Zulip" /></a>
+          {% else %}
+          <a class="brand logo" href="/"><img src="/static/images/logo/zulipcornerlogo@2x.png" class="portico-simple-logo" alt="Zulip" content="Zulip" /></a>
+          {% endif %}
+        </div>
+  </div>
+
+  <div class="column-right top-links">
+          {% if not only_sso %}
+          <a href="{{login_url}}">Log in</a>
+          {% endif %}
+
+          {% if only_sso %}
+          <a href="{% url 'login-sso' %}">Log In</a>
+          {% else %}
+          <a href="{% url 'register' %}">Register</a>
+          {% endif %}
+  </div>
+</div>
+</div>
+
+<div class="app portico-page">
+  <div class="portico-os-announcement">
+    {% block os_announcement %}
+    {% endblock %}
+  </div>
+  <div class="app-main portico-page-container{% block hello_page_container %}{% endblock %}">
+  {% block portico_content %}
+  {% endblock %}
+  </div>
+  <div class="footer-padder{% block hello_page_footer %}{% endblock %}"></div>
+</div>
+
+<div class="footer">
+  <div class="footer-main">
+    <ul class="footer-navigation">
+      <li><a href="/hello">About</a></li>
+      {% if zulip_com %}
+      <li><span class="little-bullet">·</span></li>
+      <li><a href="/terms">Legal</a></li>
+      {% endif %}
+      <li><span class="little-bullet">·</span></li>
+      <li><a href="{{login_url}}">Log in</a></li>
+      {% if not only_sso %}
+      <li><span class="little-bullet">·</span></li>
+      <li>
+          {% if zulip_com %}
+          {% else %}
+          <a href="{% url 'register' %}">Register</a>
+          {% endif %}
+      </li>
+      {% endif %}
+    </ul>
+  </div>
+</div>
+{% endblock %}

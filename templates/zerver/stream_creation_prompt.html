@@ -1,0 +1,41 @@
+<div class="modal hide" id="stream-creation" tabindex="-1" role="dialog"
+     aria-labelledby="stream-creation-label" aria-hidden="true">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+    <h3 id="stream-creation-label">Create stream <span id="stream_name"></span></h3>
+  </div>
+  <form id="stream_creation_form" class="form-inline">
+      <div class="modal-body">
+          <div id="make-invite-only">
+            <b>Stream accessibility</b><br />
+            <label class="radio">
+              <input type="radio" name="privacy" value="public" checked />
+              <span class="icon-vector-globe"></span>
+              Anyone can join
+            </label><br />
+            <label class="radio">
+              <input type="radio" name="privacy" value="invite-only" />
+              <span class="icon-vector-lock"></span>
+              People must be invited
+            </label>
+          </div>
+          <div id="announce-new-stream">
+            <br />
+            <label class="checkbox">
+              <input type="checkbox" name="announce" value="announce" checked />
+              Announce stream
+            </label>
+            <span class="icon-vector-question-sign" id="announce-stream-docs"></span>
+          </div>
+          <br />
+          <div class="control-group">
+            <label class="control-label" for="people_to_add"><b>People to add</b></label><br />
+            <div class="controls" id="people_to_add"></div>
+          </div>
+      </div>
+      <div class="modal-footer">
+          <button class="btn btn-default" data-dismiss="modal" aria-hidden="true">Cancel</button>
+          <button class="btn btn-primary" type="submit">Create</button>
+      </div>
+  </form>
+</div>

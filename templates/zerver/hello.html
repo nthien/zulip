@@ -1,0 +1,202 @@
+{% extends "zerver/portico.html" %}
+{% block hello_page_container %} hello-main{% endblock %}
+{% block hello_page_footer %} hello-footer{% endblock %}
+{% block os_announcement %}
+  {% if zulip_com %}
+  <div class="os-headline-container">
+    <img src="/static/images/logo/zballoon.png" class="os-illustration" alt="Zulip balloon" />
+    <div class="main-headline-text">
+      <span class="tagline os-tagline">
+         Zulip has been released as open source software!
+      </span>
+      <span class="footnote os-footnote">
+         Read the <a href="https://blogs.dropbox.com/tech/2015/09/open-sourcing-zulip-a-dropbox-hack-week-project" target="_blank">announcement</a> or go to <a href="https://www.zulip.org" target="_blank">the Zulip open source project website</a>.
+      </span>
+    </div>
+  </div>
+  {% endif %}
+{% endblock %}
+
+{% block portico_content %}
+<div class="app main-headline">
+  <div class="app-main main-headline-container">
+    <img src="/static/images/logo/textlogo@2x.png" class="main-headline-logo" alt="Zulip logo" />
+    <div class="main-headline-text">
+      <span class="tagline">
+        Finally, workplace chat that actually improves your productivity.*
+      </span>
+      <span class="footnote">* It's also great for sharing cat pictures.</span>
+        {% if not_voyager %}
+        {% elif only_sso %}
+          <a href="{% url 'login-sso' %}" class="main-signup-button btn btn-large btn-primary">Log in now!</a>
+        {% else %}
+          <a href="{% url 'register' %}" class="main-signup-button btn btn-large btn-primary">Register now!</a>
+        {% endif %}
+    </div>
+    <img src="/static/images/landing-page/laptop-screenshot.png" class="main-image" alt="Screenshot of Zulip" />
+  </div>
+</div>
+
+<div class="app feature-line dark">
+  <div class="app-main feature-line-container">
+   <div class="feature-text">
+    <span class="tagline">
+      Conversations, not&nbsp;messages.
+    </span>
+    <span class="description">
+      <p>Every conversation in Zulip has a <em>topic</em>, so it&rsquo;s
+      easy to keep conversations straight. Are your coworkers discussing
+      a software bug and the content of your website at the same time?
+      No problem.
+    </p>
+    <p>You wouldn’t tolerate email without subject lines or threading, so why do you for chat?</p>
+    </span>
+  </div>
+  <div class="feature-illustration">
+    <img class="feature-image" src="/static/images/landing-page/threads.png" alt="message threading in Zulip" />
+  </div>
+  </div>
+</div>
+
+<div class="app feature-line light">
+  <div class="app-main feature-line-container">
+   <div class="feature-text">
+    <span class="tagline">
+      Easily&nbsp;read&nbsp;just the&nbsp;important&nbsp;things.
+    </span>
+    <span class="description">
+      <p>Sometimes, important things get discussed when you&rsquo;re not
+      around. Unfortunately, so do a lot of unimportant things.</p>
+
+      <p><em>Narrowing</em> by stream or topic lets you focus on that important
+      customer project without having to read about how Jim&rsquo;s guitar lessons
+      are going.</p>
+    </span>
+  </div>
+  <div class="feature-illustration">
+    <img class="feature-image shadow" src="/static/images/landing-page/important-things.png" alt="Zulip streams bar" />
+  </div>
+  </div>
+</div>
+
+<div class="app feature-line dark">
+  <div class="app-main feature-line-container">
+   <div class="feature-text">
+    <span class="tagline">
+      Search&nbsp;that&rsquo;s&nbsp;better than&nbsp;Gmail&rsquo;s.
+    </span>
+    <span class="description">
+      An impressive amount of knowledge lives in your chat system.  Zulip&rsquo;s
+      powerful and fast search will delight you with how quickly you can find
+      exactly what you&rsquo;re looking for.
+    </span>
+  </div>
+  <div class="feature-illustration">
+    <img class="feature-image shadow" src="/static/images/landing-page/better-search.png" alt="example of Zulip search" />
+  </div>
+  </div>
+</div>
+
+<div class="app feature-line light">
+  <div class="app-main feature-line-container">
+   <div class="feature-text">
+    <span class="tagline">
+      Integrations&nbsp;that don&rsquo;t&nbsp;intrude.
+    </span>
+    <span class="description">
+      <p>Zulip has <a href="/integrations">many integrations</a> and
+      a powerful <a href="/api">API</a> to match. But here&rsquo;s
+      where it gets interesting: thanks to how Zulip categorizes messages,
+      automated messages never overwhelm you. As with any topic in Zulip,
+      they&rsquo;re easy to focus on, skim, defer to later, or ignore&mdash;as appropriate.</p>
+    </span>
+  </div>
+  <div class="feature-illustration">
+    <img class="feature-image shadow" src="/static/images/landing-page/integrations.png" alt="Zulip's Jenkins integration" />
+  </div>
+  </div>
+</div>
+
+<div class="app feature-line dark">
+  <div class="app-main feature-line-container">
+   <div class="feature-text">
+    <span class="tagline">
+      As&nbsp;technical&nbsp;as you&nbsp;want&nbsp;to&nbsp;be.
+    </span>
+    <span class="description">
+      <p>Keyboard shortcuts? Check.<br />
+        Syntax highlighting? Check.<br />
+        Discuss code and technical topics with ease.</p>
+    </span>
+  </div>
+  <div class="feature-illustration">
+    <img class="feature-image shadow" src="/static/images/landing-page/technical.png" alt="code highlighting in Zulip" />
+  </div>
+  </div>
+</div>
+
+<div class="app feature-line light">
+  <div class="app-main feature-line-container">
+   <div class="feature-text">
+    <span class="tagline">
+      &hellip;and&nbsp;all&nbsp;the obvious&nbsp;stuff,&nbsp;too.
+    </span>
+    <span class="description">
+      <p>Drag-and-drop file uploads, image pasting, group private messages,
+         audible notifications, missed-message emails, desktop apps, and
+        <a href="/features">everything else you might want</a>. Including emoji, naturally.</p>
+    </span>
+  </div>
+  <div class="feature-illustration">
+    <img class="feature-image shadow" src="/static/images/landing-page/features.png" alt="unicode and emoji in Zulip" />
+  </div>
+  </div>
+</div>
+
+<div class="app feature-line dark">
+  <div class="app-main feature-line-container">
+   <div class="platform-text">
+    <span class="tagline">
+      On&nbsp;the&nbsp;platform of&nbsp;your&nbsp;choice.
+    </span>
+   </div>
+   <div class="platform-icons">
+      <div class="platform">
+         <i class="icon-vector-apple platform-icon"></i>
+         <h4>Mac</h4>
+      </div>
+      <div class="platform">
+         <i class="icon-vector-windows platform-icon"></i>
+         <h4>Windows</h4>
+      </div>
+      <div class="platform">
+         <i class="icon-vector-linux platform-icon"></i>
+         <h4>Linux</h4>
+      </div>
+      <div class="platform">
+         <i class="icon-vector-android platform-icon"></i>
+         <h4>Android</h4>
+      </div>
+      <div class="platform">
+         <i class="icon-vector-mobile-phone platform-icon"></i>
+         <h4>iOS</h4>
+      </div>
+      <div class="platform">
+         <i class="icon-vector-desktop platform-icon"></i>
+         <h4>Web</h4>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="app feature-line light">
+  <div class="app-main feature-line-container centered-content">
+    {% if not_voyager %}
+    {% elif only_sso %}
+      <a href="{% url 'login-sso' %}" class="bottom-signup-button btn btn-large btn-primary">Log in now</a>
+    {% else %}
+      <a href="{% url 'register' %}" class="bottom-signup-button btn btn-large btn-primary">Register now</a>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

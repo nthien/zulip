@@ -1,0 +1,70 @@
+#!/bin/bash -xe
+
+# Assumes we've already been untarred
+
+# First, install any updates from the apt repo that may be needed
+wget -O /root/zulip-ppa.asc https://zulip.com/dist/keys/zulip-ppa.asc
+apt-key add /root/zulip-ppa.asc
+cat >/etc/apt/sources.list.d/zulip.list <<EOF
+deb http://ppa.launchpad.net/tabbott/zulip/ubuntu trusty main
+deb-src http://ppa.launchpad.net/tabbott/zulip/ubuntu trusty main
+EOF
+
+apt-get update
+apt-get -y dist-upgrade
+apt-get install -y puppet git python
+
+mkdir -p /etc/zulip
+echo -e "[machine]\npuppet_classes = zulip::voyager\ndeploy_type = voyager" > /etc/zulip/zulip.conf
+/root/zulip/scripts/zulip-puppet-apply -f
+
+# These server restarting bits should be moveable into puppet-land, ideally
+apt-get -y upgrade
+if [ -e "/etc/init.d/nginx" ]; then
+    service nginx restart
+fi
+
+/root/zulip/scripts/setup/generate_secrets.py
+cp -a /root/zulip/zproject/local_settings_template.py /etc/zulip/settings.py
+ln -nsf /etc/zulip/settings.py /root/zulip/zproject/local_settings.py
+
+if ! rabbitmqctl status >/dev/null; then
+    set +x
+    echo; echo "RabbitMQ seems to not have started properly after the installation process."
+    echo "Often, this can be caused by misconfigured /etc/hosts in virtualized environments"
+    echo "See https://github.com/zulip/zulip/issues/53#issuecomment-143805121"
+    echo "for more information"
+    echo
+    set -x
+    exit 1
+fi
+
+/root/zulip/scripts/setup/configure-rabbitmq
+
+/root/zulip/scripts/setup/postgres-init-db
+
+deploy_path=$(/root/zulip/zulip_tools.py make_deploy_path)
+mv /root/zulip "$deploy_path"
+ln -nsf /home/zulip/deployments/next /root/zulip
+ln -nsf "$deploy_path" /home/zulip/deployments/next
+ln -nsf "$deploy_path" /home/zulip/deployments/current
+ln -nsf /etc/zulip/settings.py "$deploy_path"/zproject/local_settings.py
+cp -rT "$deploy_path"/prod-static/serve /home/zulip/prod-static
+chown -R zulip:zulip /home/zulip /var/log/zulip /etc/zulip/settings.py
+chown zulip:zulip /var/run/supervisor.sock
+
+cd /home/zulip/deployments/current
+
+set +x
+cat <<EOF
+
+ Installation complete!
+
+ Now edit /etc/zulip/settings.py and fill in the mandatory values.
+
+ Once you've done that, please run:
+
+ su zulip -c /home/zulip/deployments/current/scripts/setup/initialize-database
+
+ To configure the initial database.
+EOF
