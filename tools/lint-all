@@ -1,0 +1,247 @@
+#!/usr/bin/env python
+import os
+import re
+import sys
+import optparse
+import subprocess
+
+from os          import path
+from collections import defaultdict
+
+parser = optparse.OptionParser()
+parser.add_option('--full',
+    action='store_true',
+    help='Check some things we typically ignore')
+parser.add_option('--modified', '-m',
+    action='store_true',
+    help='Only check modified files')
+(options, args) = parser.parse_args()
+
+os.chdir(path.join(path.dirname(__file__), '..'))
+
+
+# Exclude some directories and files from lint checking
+
+exclude_trees = """
+static/third
+confirmation
+zerver/tests/frontend/casperjs
+zerver/migrations
+node_modules
+""".split()
+
+exclude_files = """
+docs/html_unescape.py
+zproject/test_settings.py
+zproject/settings.py
+tools/jslint/jslint.js
+api/setup.py
+api/integrations/perforce/git_p4.py
+""".split()
+
+if options.modified:
+    # If the user specifies, use `git ls-files -m` to only check modified, non-staged
+    # files in the current checkout.  This makes things fun faster.
+    files = map(str.strip, subprocess.check_output(['git', 'ls-files', '-m']).split('\n'))
+else:
+    files = []
+
+files += args
+
+if not files and not options.modified:
+    # If no files are specified on the command line, use the entire git checkout
+    files = map(str.strip, subprocess.check_output(['git', 'ls-files']).split('\n'))
+
+files = filter(bool, files) # remove empty file caused by trailing \n
+
+if not files:
+    raise Exception('There are no files to check!')
+
+# Categorize by language all files we want to check
+by_lang   = defaultdict(list)
+
+for filepath in files:
+    if (not filepath or not path.isfile(filepath)
+        or (filepath in exclude_files)
+        or any(filepath.startswith(d+'/') for d in exclude_trees)):
+        continue
+
+    _, exn = path.splitext(filepath)
+    if not exn:
+        # No extension; look at the first line
+        with file(filepath) as f:
+            if re.match(r'^#!.*\bpython', f.readline()):
+                exn = '.py'
+
+    by_lang[exn].append(filepath)
+
+def check_whitespace(fn):
+    failed = False
+    for i, line in enumerate(open(fn)):
+        if re.search('\s+$', line.strip('\n')):
+            sys.stdout.write('Fix whitespace at %s line %s\n' % (fn, i+1))
+            failed = True
+        if re.search('\t', line):
+            sys.stdout.write('Fix tab-based whitespace at %s line %s\n' % (fn, i+1))
+            failed = True
+    return failed
+
+def perform_extra_js_checks(fn):
+    failed = False
+    for i, line in enumerate(open(fn)):
+        line = line.strip('\n')
+        if re.search('[^_]function\(', line):
+            sys.stdout.write('The keyword "function" should be followed by a space in %s line %s\n' % (fn, i+1))
+            print line
+            failed = True
+        if 'blueslip.warning(' in line:
+            sys.stdout.write('The module blueslip has no function warning, try using blueslip.warn on line %s' % (i+1, ))
+            print line
+            failed = True
+    return failed
+
+
+def check_python_gotchas(fn):
+    '''
+    Check for certain Python gotchas that pyflakes doesn't catch.
+    '''
+    failed = False
+    for i, line in enumerate(open(fn)):
+        line = line.strip('\n')
+
+        # Hacks to skip lines that confuse our dirt simple code:
+        if re.match('\s*[*#]', line):
+            continue
+        if 'help=' in line:
+            continue
+
+        gotcha_regexes = [
+                "'[^']*'\s+\([^']*$", # 'foo'(2) makes no sense
+                '"[^"]*"\s+\([^"]*$', # ditto
+                '% [a-z_]*$', # "%s" % s [we prefer "%s" % (s,)]
+        ]
+        for gotcha_regex in gotcha_regexes:
+            if re.search(gotcha_regex, line):
+                sys.stdout.write('Suspicious code at %s line %s (regex=%r)\n' % (fn, i+1, gotcha_regex))
+                print line
+                failed = True
+                break
+    return failed
+
+# Invoke the appropriate lint checker for each language,
+# and also check files for extra whitespace.
+
+import logging
+logging.basicConfig(format="%(asctime)s %(message)s")
+logger = logging.getLogger()
+# Change this to logging.INFO to see performance data
+logger.setLevel(logging.WARNING)
+
+def check_pyflakes():
+    if not by_lang['.py']:
+        return False
+    failed = False
+    pyflakes = subprocess.Popen(['pyflakes'] + by_lang['.py'],
+        stdout = subprocess.PIPE,
+        stderr = subprocess.PIPE)
+
+    # pyflakes writes some output (like syntax errors) to stderr. :/
+    for pipe in (pyflakes.stdout, pyflakes.stderr):
+        for ln in pipe:
+            if options.full or not \
+                    ('imported but unused' in ln or
+                     'redefinition of unused' in ln or
+                     ("zerver/models.py" in ln and
+                      " undefined name 'bugdown'" in ln) or
+                     ("zerver/lib/tornado_ioloop_logging.py" in ln and
+                      "redefinition of function 'instrument_tornado_ioloop'" in ln) or
+                     ("zephyr_mirror_backend.py:" in ln and
+                      "redefinition of unused 'simplejson' from line" in ln)):
+                sys.stdout.write(ln)
+                failed = True
+    return failed
+
+def check_custom_checks():
+    failed = False
+
+    for fn in by_lang['.py']:
+        if check_python_gotchas(fn):
+            failed = True
+
+    for fn in by_lang['.js']:
+        if perform_extra_js_checks(fn):
+            failed = True
+
+    whitespace_exceptions = set(['zerver/lib/bugdown/codehilite.py'])
+    whitespace_targets = by_lang['.js'] + by_lang['.py']
+    whitespace_targets = [x for x in whitespace_targets if not x in whitespace_exceptions]
+    for fn in whitespace_targets:
+        if check_whitespace(fn):
+            failed = True
+
+    return failed
+
+lint_functions = {}
+
+def run_parallel():
+    pids = []
+    for name, func in lint_functions.items():
+        pid = os.fork()
+        if pid == 0:
+            logging.info("start " + name)
+            result = func()
+            logging.info("finish " + name)
+            os._exit(result)
+        pids.append(pid)
+    failed = False
+
+    for pid in pids:
+        (_, status) = os.waitpid(pid, 0)
+        if status != 0:
+            failed = True
+    return failed
+
+def lint(func):
+    lint_functions[func.__name__] = func
+    return func
+
+try:
+    # Make the lint output bright red
+    sys.stdout.write('\x1B[1;31m')
+    sys.stdout.flush()
+
+    @lint
+    def templates():
+        result = subprocess.call(['tools/check-templates'])
+        return result
+
+    @lint
+    def jslint():
+        result = subprocess.call(['tools/node', 'tools/jslint/check-all.js']
+                                 + by_lang['.js'])
+        return result
+
+    @lint
+    def puppet():
+        if not by_lang['.pp']:
+            return 0
+        result = subprocess.call(['puppet', 'parser', 'validate'] + by_lang['.pp'])
+        return result
+
+    @lint
+    def custom():
+        failed = check_custom_checks()
+        return 1 if failed else 0
+
+    @lint
+    def pyflakes():
+        failed = check_pyflakes()
+        return 1 if failed else 0
+
+    failed = run_parallel()
+
+    sys.exit(1 if failed else 0)
+
+finally:
+    # Restore normal terminal colors
+    sys.stdout.write('\x1B[0m')

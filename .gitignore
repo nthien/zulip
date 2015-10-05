@@ -1,43 +1,36 @@
-# Windows image file caches
-Thumbs.db
-ehthumbs.db
-
-# Folder config file
-Desktop.ini
-
-# Recycle Bin used on file shares
-$RECYCLE.BIN/
-
-# Windows Installer files
-*.cab
-*.msi
-*.msm
-*.msp
-
-# Windows shortcuts
-*.lnk
-
-# =========================
-# Operating System Files
-# =========================
-
-# OSX
-# =========================
-
-.DS_Store
-.AppleDouble
-.LSOverride
-
-# Thumbnails
-._*
-
-# Files that might appear on external disk
-.Spotlight-V100
-.Trashes
-
-# Directories potentially created on remote AFP share
-.AppleDB
-.AppleDesktop
-Network Trash Folder
-Temporary Items
-.apdisk
+*.pyc
+*~
+/all_messages_log.*
+/event_log/*
+/server.log
+/update-prod-static.log
+/prod-static
+/errors/*
+*.sw[po]
+*.DS_Store
+event_queues.pickle
+stats/
+zerver/fixtures/available-migrations
+zerver/fixtures/migration-status
+zerver/fixtures/test_data1.json
+zerver/tests/frontend/test_credentials.js
+.kdev4
+zulip.kdev4
+memcached_prefix
+coverage/
+/queue_error
+/workers.log
+.test-js-with-node.html
+digest.log
+errors.log
+manage.log
+.kateproject.d/
+.kateproject
+*.kate-swp
+event_queues.json
+.vagrant
+/zproject/dev-secrets.conf
+static/third/gemoji/
+static/third/zxcvbn/
+tools/emoji_dump/bitmaps/
+tools/emoji_dump/*.ttx

@@ -1,0 +1,22 @@
+#!/bin/bash -e
+
+cd "$(dirname "$0")"/..
+
+function run {
+    echo '----'
+    echo "Running $@"
+    if ! "$@"; then
+        printf "\n\e[31;1mFAILED\e[0m $@\n"
+        exit 1
+    else
+        echo
+    fi
+}
+
+run ./tools/clean-repo
+run ./tools/lint-all
+run ./tools/test-js-with-node
+run ./tools/test-backend
+run ./tools/test-js-with-casper
+
+printf '\n\e[32mAll OK!\e[0m\n'
